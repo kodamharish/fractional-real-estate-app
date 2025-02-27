@@ -8,6 +8,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+        extra_kwargs = {
+            'user_id': {'read_only': True},  # Ensure it's not required in input
+            'password': {'write_only': True}
+        }
+        
+
         
 class UserTypeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -12,8 +12,13 @@ admin.site.register(AssetType)
 
 
 
+
+
+
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username','full_name','email','user_type')
+    list_display = ('user_id','username','full_name','email','user_type')
+    readonly_fields = ("user_id",)  # Prevents modification in the admin panel
+
     
 admin.site.register(User, UserAdmin)
 

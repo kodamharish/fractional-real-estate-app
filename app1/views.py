@@ -53,19 +53,29 @@ class UserDetailAPIView(APIView):
 
 
 # Login API
+        
+
 class LoginAPIView(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        
+        username = request.data.get("username")
+        password = request.data.get("password")
+
         try:
             user = User.objects.get(username=username)
             if check_password(password, user.password):
-                return Response({"message": "Login successful!", "user_type": user.user_type}, status=status.HTTP_200_OK)
+                # Convert `user_type` to a string
+                user_type = str(user.user_type) if hasattr(user, "user_type") else "Unknown"
+                
+                return Response(
+                    {"message": "Login successful!", "user_type": user_type},
+                    status=status.HTTP_200_OK
+                )
             else:
                 return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
 
 # Logout API (Dummy for now, can be extended for token-based logout)
 class LogoutAPIView(APIView):

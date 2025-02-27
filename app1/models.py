@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 class UserType(models.Model):
     type_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, unique=True)  # Example: 'admin', 'partner', 'individual'
+    prefix = models.CharField(max_length=3, unique=True)  # Example: 'IFA', 'REC', 'INV', 'ADM'
+    
 
     def __str__(self):
         return self.name
@@ -62,8 +64,151 @@ def user_image_upload_path(instance, filename):
 
 
 
+
+# class User(models.Model):
+#     user_id = models.CharField(max_length=50,primary_key=True)
+#     username = models.CharField(max_length=50, unique=True)
+#     password = models.CharField(max_length=255)  # Store hashed password
+#     email = models.EmailField(unique=True)
+#     phone = models.CharField(max_length=15, unique=True)
+#     full_name = models.CharField(max_length=100)
+#     date_of_birth = models.DateField(null=True, blank=True)
+#     gender = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], null=True, blank=True)
+    
+
+#     user_type = models.ForeignKey(UserType, on_delete=models.SET_NULL, null=True, blank=True)
+#     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True)
+#     kyc_status = models.ForeignKey(KYCStatus, on_delete=models.SET_NULL, null=True, blank=True)
+
+#     added_by = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="added_users")
+#     user_image = models.ImageField(upload_to=user_image_upload_path, blank=True, null=True)  # Custom path
+#     address = models.TextField(blank=True, null=True)
+#     city = models.CharField(max_length=100, blank=True, null=True)
+#     state = models.CharField(max_length=100, blank=True, null=True)
+#     country = models.CharField(max_length=100, blank=True, null=True)
+#     postal_code = models.CharField(max_length=20, blank=True, null=True)
+    
+
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+    
+#     def save(self, *args, **kwargs):
+#         is_new = self.pk is None  # Check if it's a new user
+#         if not self.password.startswith('pbkdf2_sha256$'):
+#             self.password = make_password(self.password)
+#         super().save(*args, **kwargs)  # Save user first to get user_id
+
+#         if not self.user_id and self.user_type:
+#             prefix = self.user_type.prefix  # Get the prefix from UserType
+#             last_user = User.objects.filter(user_type=self.user_type).order_by("-created_at").first()
+#             if last_user and last_user.user_id.startswith(prefix):
+#                 last_number = int(last_user.user_id[3:])  # Extract number part
+#                 new_number = last_number + 1
+#             else:
+#                 new_number = 1
+#             self.user_id = f"{prefix}{new_number:03d}"  # Format like IFA001, REC002
+#         super().save(*args, **kwargs)
+
+#         if is_new and self.user_image:  # Rename image after saving user_id
+#             ext = self.user_image.name.split('.')[-1]
+#             new_filename = f"{self.user_id}.{ext}"
+#             new_path = os.path.join("user_images", new_filename)
+
+#             # Move the file from temp to the correct path
+#             old_path = self.user_image.path
+#             if default_storage.exists(old_path):
+#                 with default_storage.open(old_path, 'rb') as file_content:
+#                     default_storage.save(new_path, ContentFile(file_content.read()))
+#                 default_storage.delete(old_path)  # Delete temp file
+
+#             # Update model to use new filename
+#             self.user_image.name = new_path
+#             super().save(update_fields=["user_image"])  # Save again with updated path
+
+        
+
+#     def __str__(self):
+#         return f"{self.user_id}"
+
+
+
+
+
+
+
+# class User(models.Model): 
+#     user_id = models.CharField(max_length=50, primary_key=True)
+#     username = models.CharField(max_length=50, unique=True)
+#     password = models.CharField(max_length=255)  # Store hashed password
+#     email = models.EmailField(unique=True)
+#     phone = models.CharField(max_length=15, unique=True)
+#     full_name = models.CharField(max_length=100)
+#     date_of_birth = models.DateField(null=True, blank=True)
+#     gender = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], null=True, blank=True)
+
+#     user_type = models.ForeignKey(UserType, on_delete=models.SET_NULL, null=True, blank=True)
+#     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True)
+#     kyc_status = models.ForeignKey(KYCStatus, on_delete=models.SET_NULL, null=True, blank=True)
+
+#     added_by = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="added_users")
+#     user_image = models.ImageField(upload_to=user_image_upload_path, blank=True, null=True)  # Custom path
+#     address = models.TextField(blank=True, null=True)
+#     city = models.CharField(max_length=100, blank=True, null=True)
+#     state = models.CharField(max_length=100, blank=True, null=True)
+#     country = models.CharField(max_length=100, blank=True, null=True)
+#     postal_code = models.CharField(max_length=20, blank=True, null=True)
+
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def save(self, *args, **kwargs):
+#         if not self.pk:  # Check if it's a new user
+#             if not self.password.startswith('pbkdf2_sha256$'):
+#                 self.password = make_password(self.password)
+
+#             # Ensure user_type exists before generating user_id
+#             if self.user_type:
+#                 prefix = self.user_type.prefix  # Get prefix from UserType
+#                 last_user = User.objects.filter(user_type=self.user_type).order_by("-created_at").first()
+#                 if last_user and last_user.user_id.startswith(prefix):
+#                     last_number = int(last_user.user_id[len(prefix):])  # Extract numeric part
+#                     new_number = last_number + 1
+#                 else:
+#                     new_number = 1
+#                 self.user_id = f"{prefix}{new_number:03d}"  # Format like ADM001, IFA002
+            
+#         super().save(*args, **kwargs)  # Save the user
+
+#         # Handle user image renaming after saving
+#         if self.user_image and not self.user_image.name.startswith(self.user_id):
+#             ext = self.user_image.name.split('.')[-1]
+#             new_filename = f"{self.user_id}.{ext}"
+#             new_path = os.path.join("user_images", new_filename)
+
+#             old_path = self.user_image.path
+#             if default_storage.exists(old_path):
+#                 with default_storage.open(old_path, 'rb') as file_content:
+#                     default_storage.save(new_path, ContentFile(file_content.read()))
+#                 default_storage.delete(old_path)  # Delete temp file
+
+#             # Update model with new file path
+#             self.user_image.name = new_path
+#             super().save(update_fields=["user_image"])  # Save again with updated path
+
+#     def __str__(self):
+#         return f"{self.user_id}"
+
+
+
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.db import models
+from django.contrib.auth.hashers import make_password
+
 class User(models.Model):
-    user_id = models.AutoField(primary_key=True)
+    user_id = models.CharField(max_length=50, primary_key=True)
     username = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=255)  # Store hashed password
     email = models.EmailField(unique=True)
@@ -71,7 +216,6 @@ class User(models.Model):
     full_name = models.CharField(max_length=100)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[("male", "Male"), ("female", "Female"), ("other", "Other")], null=True, blank=True)
-    
 
     user_type = models.ForeignKey(UserType, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True)
@@ -84,38 +228,55 @@ class User(models.Model):
     state = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     postal_code = models.CharField(max_length=20, blank=True, null=True)
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    
     def save(self, *args, **kwargs):
-        is_new = self.pk is None  # Check if it's a new user
-        if not self.password.startswith('pbkdf2_sha256$'):
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)  # Save user first to get user_id
-
-        if is_new and self.user_image:  # Rename image after saving user_id
-            ext = self.user_image.name.split('.')[-1]
-            new_filename = f"{self.user_id}.{ext}"
-            new_path = os.path.join("user_images", new_filename)
-
-            # Move the file from temp to the correct path
-            old_path = self.user_image.path
-            if default_storage.exists(old_path):
-                with default_storage.open(old_path, 'rb') as file_content:
-                    default_storage.save(new_path, ContentFile(file_content.read()))
-                default_storage.delete(old_path)  # Delete temp file
-
-            # Update model to use new filename
-            self.user_image.name = new_path
-            super().save(update_fields=["user_image"])  # Save again with updated path
-
+        is_new = not self.pk  # Check if it's a new user
         
+        if is_new:
+            if not self.password.startswith('pbkdf2_sha256$'):
+                self.password = make_password(self.password)
+
+            # Ensure user_type exists before generating user_id
+            if self.user_type:
+                prefix = self.user_type.prefix  # Get prefix from UserType
+                last_user = User.objects.filter(user_type=self.user_type).order_by("-created_at").first()
+                if last_user and last_user.user_id.startswith(prefix):
+                    last_number = int(last_user.user_id[len(prefix):])  # Extract numeric part
+                    new_number = last_number + 1
+                else:
+                    new_number = 1
+                self.user_id = f"{prefix}{new_number:03d}"  # Format like ADM001, IFA002
+        
+        super().save(*args, **kwargs)  # Save the user
+
+        # Handle user image renaming only if a new image is uploaded
+        if self.user_image:
+            ext = self.user_image.name.split('.')[-1]
+            expected_filename = f"{self.user_id}.{ext}"
+            expected_path = os.path.join("user_images", expected_filename)
+
+            if self.user_image.name != expected_path:  # Rename only if needed
+                old_path = self.user_image.path
+                
+                # Save the file with new name
+                with default_storage.open(old_path, 'rb') as file_content:
+                    default_storage.save(expected_path, ContentFile(file_content.read()))
+                default_storage.delete(old_path)  # Remove old file
+                
+                # Update model with new file path
+                self.user_image.name = expected_path
+                super().save(update_fields=["user_image"])  # Save again to update path
 
     def __str__(self):
         return f"{self.user_id}"
+
+
+
+
+
 
 class BankDetails(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="bank_details")
